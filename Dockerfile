@@ -1,7 +1,7 @@
 FROM ubuntu:22.04 AS downloader
 
 # Build args to select terraformer providers and terraformer/terraform versions
-ARG TERRAFORMER_PROVIDER=google
+ARG TERRAFORMER_PROVIDER=all
 ARG TERRAFORMER_VERSION=0.8.30
 ARG TERRAFORM_VERSION=1.12.1
 
@@ -20,7 +20,13 @@ RUN chmod +x /tmp/terraformer
 
 FROM ubuntu:22.04 AS prod
 
+ARG UID=101
+ARG GID=101
+USER root
+
 COPY --from=downloader /tmp/terraformer /usr/local/bin/terraformer
 COPY --from=downloader /tmp/terraform /usr/local/bin/terraform
+
+USER $UID
 
 ENTRYPOINT ["/usr/local/bin/terraformer"]
