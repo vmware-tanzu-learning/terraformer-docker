@@ -10,8 +10,6 @@ RUN apt install -y curl unzip
 
 # Install the ca-certificate package
 RUN apt-get update && apt-get install -y ca-certificates
-# Copy the CA certificate from the context to the build container
-COPY your_certificate.crt /usr/local/share/ca-certificates/
 # Update the CA certificates in the container
 RUN update-ca-certificates
 
@@ -27,13 +25,15 @@ RUN chmod +x /tmp/terraformer
 
 FROM ubuntu:22.04 AS prod
 
-ARG UID=101
-ARG GID=101
 USER root
 
 COPY --from=downloader /tmp/terraformer /usr/local/bin/terraformer
 COPY --from=downloader /tmp/terraform /usr/local/bin/terraform
 
-USER $UID
+RUN mkdir -p /home/terraformer
+RUN chown -R 101:101 /home/terraformer
+
+USER 101
+WORKDIR /home/terraformer
 
 ENTRYPOINT ["/usr/local/bin/terraformer"]
